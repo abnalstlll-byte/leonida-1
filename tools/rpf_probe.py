@@ -61,6 +61,10 @@ def _write_json_report(path: str, rows: list) -> None:
         replace_retry(staged.name, destination)
     finally:
         try:
+            os.chmod(staged.name, 0o600)
+        except OSError:
+            pass
+        try:
             os.unlink(staged.name)
         except FileNotFoundError:
             pass

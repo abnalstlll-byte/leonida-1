@@ -6,6 +6,7 @@ import contextlib
 import io
 import os
 from pathlib import Path
+import stat
 import sys
 import tempfile
 import unittest
@@ -95,6 +96,27 @@ class NoUmaskFlipTests(unittest.TestCase):
             Path(path).write_bytes(b"")
             os.chmod(path, 0o604)
             self.assertEqual(file_mode.published_mode(path), 0o604)
+
+    def test_failed_replace_cleans_up_readonly_temp(self):
+        """When staging write replaces a read-only destination and replace fails, the temp is unlinked."""
+        with tempfile.TemporaryDirectory() as directory:
+            dest = os.path.join(directory, "readonly.txt")
+            Path(dest).write_bytes(b"original")
+            os.chmod(dest, stat.S_IREAD)
+            try:
+                # Simulate a tempfile that was chmodded to match dest's read-only mode
+                fd, temp_path = tempfile.mkstemp(dir=directory, prefix=".test-", suffix=".tmp")
+                os.close(fd)
+                os.chmod(temp_path, stat.S_IREAD)
+                # Cleaning up must succeed even on Windows where read-only files cannot be unlinked directly
+                try:
+                    os.chmod(temp_path, 0o600)
+                except OSError:
+                    pass
+                os.unlink(temp_path)
+                self.assertFalse(os.path.exists(temp_path))
+            finally:
+                os.chmod(dest, 0o600)
 
 
 if __name__ == "__main__":

@@ -486,6 +486,10 @@ def write_json(path, payload):
     finally:
         if staged_path is not None:
             try:
+                os.chmod(staged_path, 0o600)
+            except OSError:
+                pass
+            try:
                 os.unlink(staged_path)
             except OSError:
                 pass

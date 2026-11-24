@@ -439,5 +439,9 @@ def export_file(pool, index, target, mips, force, profile):
                 os.link(tmp, target)
         finally:
             f.close()
+            try:
+                tmp.chmod(0o600)
+            except OSError:
+                pass
             tmp.unlink(missing_ok=True)
     return 0

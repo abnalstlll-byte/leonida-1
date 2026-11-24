@@ -72,6 +72,10 @@ def publish(path, data):
             tmp.chmod(published_mode(path))
         os.replace(tmp, path)
     finally:
+        try:
+            tmp.chmod(0o600)
+        except OSError:
+            pass
         tmp.unlink(missing_ok=True)
 
 

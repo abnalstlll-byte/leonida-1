@@ -231,6 +231,10 @@ def save_evidence(path, record):
             json.dump(record, f)
         os.replace(temporary, path)
     finally:
+        try:
+            temporary.chmod(0o600)
+        except OSError:
+            pass
         temporary.unlink(missing_ok=True)
 
 
