@@ -609,6 +609,11 @@ bool resolve_acceleration_structure_postbuild(IUnknown* device, leonida::Acceler
 bool bound_descriptor_heap_bases(ID3D12GraphicsCommandList* list, D3D12_GPU_VIRTUAL_ADDRESS& cbv_srv_uav,
                                  D3D12_GPU_VIRTUAL_ADDRESS& sampler);
 
+// Reads the current packed compute user-data SGPR words on `list` (using the currently bound root signature and heaps).
+// Returns false when `list` is not one of this module's command lists or has no compute root signature bound.
+bool current_compute_user_data(ID3D12GraphicsCommandList* list,
+                               std::array<std::uint32_t, rt::rootsig::kMaxUserSgprs>& user_data);
+
 // The size of every descriptor slot (GetDescriptorHandleIncrementSize), for handle ranges.
 inline constexpr UINT descriptor_size = 32;
 

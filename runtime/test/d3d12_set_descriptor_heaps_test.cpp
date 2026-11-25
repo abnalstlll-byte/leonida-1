@@ -348,15 +348,12 @@ bool check_tracking_lifetime_and_direct_indexing(DeviceHeaps& ours) {
     ID3D12DescriptorHeap* heaps[2] = {ours.cbv1.p, ours.smp1.p};
     list->SetDescriptorHeaps(2, heaps);
     list->SetComputeRootSignature(root.p);
-    list->Dispatch(1, 1, 1);
-    std::vector<leonida::Command> cmds;
-    CHECK(rt::d3d12::recorded_commands(list.p, cmds) && !cmds.empty());
-    const auto* disp = std::get_if<leonida::Dispatch>(&cmds.back());
-    CHECK(disp != nullptr);
+    std::array<std::uint32_t, rt::rootsig::kMaxUserSgprs> user_data{};
+    CHECK(rt::d3d12::current_compute_user_data(list.p, user_data));
     const auto expected_cbv = static_cast<std::uint32_t>(rt::d3d12::console_descriptor_table_va(cbv1_va));
     const auto expected_smp = static_cast<std::uint32_t>(rt::d3d12::console_descriptor_table_va(smp1_va));
-    CHECK(disp->user_data[layout->compute_arguments_end] == expected_cbv);
-    CHECK(disp->user_data[layout->compute_arguments_end + 1] == expected_smp);
+    CHECK(user_data[layout->compute_arguments_end] == expected_cbv);
+    CHECK(user_data[layout->compute_arguments_end + 1] == expected_smp);
 
     CHECK(!rt::d3d12::bound_descriptor_heap_bases(nullptr, got_cbv, got_smp));
     return true;

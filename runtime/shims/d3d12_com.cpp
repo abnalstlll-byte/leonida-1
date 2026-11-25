@@ -240,6 +240,7 @@ public:
     UINT back_stencil_ref() const { return back_stencil_ref_; }
     D3D12_GPU_VIRTUAL_ADDRESS cbv_srv_uav_base() const { return cbv_srv_uav_base_; }
     D3D12_GPU_VIRTUAL_ADDRESS sampler_base() const { return sampler_base_; }
+    const RootArgumentLayout* compute_layout() const { return compute_.layout; }
 
     D3D12_COMMAND_LIST_TYPE STDMETHODCALLTYPE GetType() override {
         d3d12_trace::record("ID3D12CommandList::GetType");
@@ -2851,6 +2852,14 @@ bool bound_descriptor_heap_bases(ID3D12GraphicsCommandList* list, D3D12_GPU_VIRT
     if (!l) return false;
     cbv_srv_uav = l->cbv_srv_uav_base();
     sampler = l->sampler_base();
+    return true;
+}
+
+bool current_compute_user_data(ID3D12GraphicsCommandList* list,
+                               std::array<std::uint32_t, rt::rootsig::kMaxUserSgprs>& user_data) {
+    GraphicsCommandList* l = GraphicsCommandList::from(list);
+    if (!l || !l->compute_layout()) return false;
+    user_data = l->compute_user_data();
     return true;
 }
 
